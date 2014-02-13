@@ -1,0 +1,20 @@
+{
+  "name": "ox",
+  "version": "0.0.1",
+  "description": "ox ==",
+  "main": "src/ox.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/positlabs/ox.git"
+  },
+  "author": "pixel-fiend",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/positlabs/ox/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-requirejs": "~0.4.1",
+    "almond": "~0.2.9"
+  }
+}
