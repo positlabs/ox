@@ -8,14 +8,23 @@ define(function (require) {
 
 	function ox(selector) {
 		var element = document.querySelector(selector);
-		if (element.ox == undefined)new OxElement(selector);
+		oxWrap(element);
 		return element;
+	}
+	function oxWrap(element){
+		if (element.ox == undefined)new OxElement(element);
 	}
 
 	// private constructor
-	function OxElement(selector) {
-		this.element = document.querySelector(selector);
+	function OxElement(element) {
+		this.element = element;
 		this.element.ox = this;
+
+		new ox.DOMEvents(this.element);
+		this.on = element.on;
+		this.once = element.once;
+		this.off = element.off;
+		this.trigger = element.trigger;
 
 		// convenience accessors
 		this.style = this.element.style;
@@ -51,21 +60,13 @@ define(function (require) {
 		},
 		remove: function () {
 			this.parentNode.removeChild(this.element);
-		},
-
-		// maybe use ox.Events for this. Need to modify to handle DOM events
-		on: function () {
-		},
-		off: function () {
-		},
-		trigger: function () {
 		}
-	};
 
+	};
 
 	ox.select = function (selector) {
 		var el = document.querySelector(selector);
-		if (el.ox == undefined) new OxElement(el);
+		oxWrap(el);
 		return el;
 	};
 	ox.selectAll = function (selector, parent) {
@@ -73,10 +74,11 @@ define(function (require) {
 		var els = parent.querySelectorAll(selector);
 		for (var i = 0, maxi = els.length; i < maxi; i++) {
 			var el = els[i];
-			if (el.ox == undefined) new OxElement(el);
+			oxWrap(el);
 		}
 		return els;
 	};
+
 	ox.create = function(type, content){
 		var el = document.createElement(type);
 		if(typeof content == 'string'){
@@ -86,12 +88,12 @@ define(function (require) {
 		}
 		return el;
 	};
-	ox.Events = require("Events");
-	ox.FrameImpulse = require("FrameImpulse");
+
 	ox.ajax = function (path, callback) {
 		//TODO
 		callback();
 	};
+
 	ox.loadImage = function (src, callback) {
 		var img = new Image();
 		img.crossOrigin = "anonymous";
@@ -103,6 +105,10 @@ define(function (require) {
 		img.src = src;
 		return img;
 	};
+
+	ox.Events = require("Events");
+	ox.FrameImpulse = require("FrameImpulse");
+
 
 	return ox;
 

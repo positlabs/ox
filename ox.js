@@ -427,26 +427,23 @@ define('Events',['require'],function (require) {
 
 	var Events = function (obj) {
 
-		//TODO: handle dom events
-
 		var events = obj || {};
 		var listeners = {};
 
-		var catchDomEvents = obj instanceof Element;
-
 		events.on = function (event, callback) {
+
 			if (!listeners[event]) listeners[event] = [];
 			// add to the beginning of the array so they'll be in order when we do a reverse while loop to process them
 			listeners[event].unshift(callback);
 
-
-			//TODO: DOM
-			// try something like if( ('on' + event) in obj ){...} to check if it's a dom event
-			// add listener to dom element that calls .trigger
-
-
-
 			return callback;
+		};
+
+		events.once = function(event, callback){
+			events.on(event, function(data){
+				events.off(event, callback);
+				callback(data);
+			});
 		};
 
 		events.off = function (event, callback) {
@@ -471,8 +468,6 @@ define('Events',['require'],function (require) {
 			while (i--) {
 				callbacks[i](data);
 			}
-
-			//TODO: how do we create and fire a dom event?
 		};
 
 		return events;
@@ -552,14 +547,23 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 
 	function ox(selector) {
 		var element = document.querySelector(selector);
-		if (element.ox == undefined)new OxElement(selector);
+		oxWrap(element);
 		return element;
+	}
+	function oxWrap(element){
+		if (element.ox == undefined)new OxElement(element);
 	}
 
 	// private constructor
-	function OxElement(selector) {
-		this.element = document.querySelector(selector);
+	function OxElement(element) {
+		this.element = element;
 		this.element.ox = this;
+
+		new ox.DOMEvents(this.element);
+		this.on = element.on;
+		this.once = element.once;
+		this.off = element.off;
+		this.trigger = element.trigger;
 
 		// convenience accessors
 		this.style = this.element.style;
@@ -595,21 +599,13 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		},
 		remove: function () {
 			this.parentNode.removeChild(this.element);
-		},
-
-		// maybe use ox.Events for this. Need to modify to handle DOM events
-		on: function () {
-		},
-		off: function () {
-		},
-		trigger: function () {
 		}
-	};
 
+	};
 
 	ox.select = function (selector) {
 		var el = document.querySelector(selector);
-		if (el.ox == undefined) new OxElement(el);
+		oxWrap(el);
 		return el;
 	};
 	ox.selectAll = function (selector, parent) {
@@ -617,10 +613,11 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		var els = parent.querySelectorAll(selector);
 		for (var i = 0, maxi = els.length; i < maxi; i++) {
 			var el = els[i];
-			if (el.ox == undefined) new OxElement(el);
+			oxWrap(el);
 		}
 		return els;
 	};
+
 	ox.create = function(type, content){
 		var el = document.createElement(type);
 		if(typeof content == 'string'){
@@ -630,12 +627,12 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		}
 		return el;
 	};
-	ox.Events = require("Events");
-	ox.FrameImpulse = require("FrameImpulse");
+
 	ox.ajax = function (path, callback) {
 		//TODO
 		callback();
 	};
+
 	ox.loadImage = function (src, callback) {
 		var img = new Image();
 		img.crossOrigin = "anonymous";
@@ -647,6 +644,10 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		img.src = src;
 		return img;
 	};
+
+	ox.Events = require("Events");
+	ox.FrameImpulse = require("FrameImpulse");
+
 
 	return ox;
 
