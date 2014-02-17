@@ -620,6 +620,7 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 
 	ox.create = function(type, content){
 		var el = document.createElement(type);
+		oxWrap(el);
 		if(typeof content == 'string'){
 			el.innerHTML = content;
 		}else if(content instanceof Element){
