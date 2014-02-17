@@ -427,13 +427,25 @@ define('Events',['require'],function (require) {
 
 	var Events = function (obj) {
 
+		//TODO: handle dom events
+
 		var events = obj || {};
 		var listeners = {};
+
+		var catchDomEvents = obj instanceof Element;
 
 		events.on = function (event, callback) {
 			if (!listeners[event]) listeners[event] = [];
 			// add to the beginning of the array so they'll be in order when we do a reverse while loop to process them
 			listeners[event].unshift(callback);
+
+
+			//TODO: DOM
+			// try something like if( ('on' + event) in obj ){...} to check if it's a dom event
+			// add listener to dom element that calls .trigger
+
+
+
 			return callback;
 		};
 
@@ -459,6 +471,8 @@ define('Events',['require'],function (require) {
 			while (i--) {
 				callbacks[i](data);
 			}
+
+			//TODO: how do we create and fire a dom event?
 		};
 
 		return events;
@@ -559,33 +573,37 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		selectAll: function (selector) {
 			return ox.selectAll(selector, this);
 		},
-		css:function(arg1, arg2){
-			if(typeof arg1 == "string"){
+		css: function (arg1, arg2) {
+			if (typeof arg1 == "string") {
 				this.style[arg1] = arg2;
-			}else{
+			} else {
 				// object
-				for(var key in arg1){
+				for (var key in arg1) {
 					this.style[key] = arg1[key];
 				}
 			}
 		},
-		attr: function(name, value){
+		attr: function (name, value) {
 			this.setAttribute(name, value);
-			if(value == undefined) return this.getAttribute(name);
+			if (value == undefined) return this.getAttribute(name);
 		},
-		prepend:function(){},
-		insert:function(){},
-		append:function(element){
+		prepend: function (element) {
+			this.element.insertBefore(element, this.element.childNodes[0]);
+		},
+		append: function (element) {
 			this.element.appendChild(element);
 		},
-		remove:function(){
-			this.parentNode.removeChild(this);
+		remove: function () {
+			this.parentNode.removeChild(this.element);
 		},
 
 		// maybe use ox.Events for this. Need to modify to handle DOM events
-		on:function(){},
-		off:function(){},
-		trigger:function(){}
+		on: function () {
+		},
+		off: function () {
+		},
+		trigger: function () {
+		}
 	};
 
 
@@ -603,11 +621,31 @@ define('ox',['require','Events','FrameImpulse'],function (require) {
 		}
 		return els;
 	};
+	ox.create = function(type, content){
+		var el = document.createElement(type);
+		if(typeof content == 'string'){
+			el.innerHTML = content;
+		}else{
+			el.appendChild(content);
+		}
+		return el;
+	};
 	ox.Events = require("Events");
 	ox.FrameImpulse = require("FrameImpulse");
-	ox.ajax = function(path, callback){
+	ox.ajax = function (path, callback) {
 		//TODO
 		callback();
+	};
+	ox.loadImage = function (src, callback) {
+		var img = new Image();
+		img.crossOrigin = "anonymous";
+		if (callback) {
+			img.addEventListener('load', function () {
+				callback(img);
+			});
+		}
+		img.src = src;
+		return img;
 	};
 
 	return ox;
