@@ -108,6 +108,7 @@ define(function (require) {
 	};
 
 	ox.Events = require("Events");
+	ox.DOMEvents = require("DOMEvents");
 	ox.FrameImpulse = require("FrameImpulse");
 
 
