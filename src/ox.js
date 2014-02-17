@@ -83,7 +83,7 @@ define(function (require) {
 		var el = document.createElement(type);
 		if(typeof content == 'string'){
 			el.innerHTML = content;
-		}else{
+		}else if(content instanceof Element){
 			el.appendChild(content);
 		}
 		return el;
