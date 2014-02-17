@@ -2,13 +2,25 @@ define(function (require) {
 
 	var Events = function (obj) {
 
+		//TODO: handle dom events
+
 		var events = obj || {};
 		var listeners = {};
+
+		var catchDomEvents = obj instanceof Element;
 
 		events.on = function (event, callback) {
 			if (!listeners[event]) listeners[event] = [];
 			// add to the beginning of the array so they'll be in order when we do a reverse while loop to process them
 			listeners[event].unshift(callback);
+
+
+			//TODO: DOM
+			// try something like if( ('on' + event) in obj ){...} to check if it's a dom event
+			// add listener to dom element that calls .trigger
+
+
+
 			return callback;
 		};
 
@@ -34,6 +46,8 @@ define(function (require) {
 			while (i--) {
 				callbacks[i](data);
 			}
+
+			//TODO: how do we create and fire a dom event?
 		};
 
 		return events;

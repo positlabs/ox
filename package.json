@@ -15,6 +15,7 @@
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-requirejs": "~0.4.1",
-    "almond": "~0.2.9"
+    "almond": "~0.2.9",
+    "grunt-contrib-watch": "~0.5.3"
   }
 }
