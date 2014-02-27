@@ -7,6 +7,14 @@
 	<script type="text/javascript">
 
 		window.onload = function(){
+			ox('#native-click').on('click', function(){
+				console.log('native click');
+			});
+
+			ox('#trigger-click').on('click', function(){
+				console.log('triggering native click');
+				ox('#native-click').trigger('click');
+			});
 
 		};
 

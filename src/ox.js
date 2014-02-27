@@ -1,5 +1,7 @@
 define(function (require) {
 
+	var Transform = require('Transform');
+
 	/**
 
 	 ox is an element wrapper.
@@ -20,11 +22,14 @@ define(function (require) {
 		this.element = element;
 		this.element.ox = this;
 
-		new ox.DOMEvents(this.element);
+		new Transform(this, this.element);
+		new ox.Events(this.element);
+
 		this.on = element.on;
 		this.once = element.once;
 		this.off = element.off;
 		this.trigger = element.trigger;
+		element.transform = this.transform;
 
 		// convenience accessors
 		this.style = this.element.style;
@@ -108,9 +113,7 @@ define(function (require) {
 	};
 
 	ox.Events = require("Events");
-	ox.DOMEvents = require("DOMEvents");
 	ox.FrameImpulse = require("FrameImpulse");
-
 
 	return ox;
 

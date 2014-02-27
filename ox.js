@@ -423,10 +423,303 @@ var requirejs, require, define;
 
 define("../node_modules/almond/almond", function(){});
 
-define('Events',['require'],function (require) {
+define('Simplizr',['require'],function (require) {
 
+	var s;
+	var Simplizr = s = {}, classes = [];
+
+	var check = function (feature, test) {
+		var result = test();
+		s[feature] = (result) ? true : false;
+		classes.push((result) ? feature : "no-" + feature);
+	};
+
+	s.pixelRatio = window.devicePixelRatio || 1;
+
+	var prefix = (function () {
+		var styles, pre, dom;
+		//wrapped into a try catch because IE8 doesn't support getComputedStyle and that regex match returns null in IE8
+		try {
+			styles = window.getComputedStyle(document.documentElement, '');
+			pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1];
+			dom = ('WebKit|Moz|MS|O').match(new RegExp('(' + pre + ')', 'i'))[1];
+		} catch (e) {
+			//assume IE8
+			styles = '';
+			pre = 'ms';
+			dom = 'MS';
+		}
+
+
+		return {
+			dom: dom,
+			lowercase: pre,
+			css: '-' + pre + '-',
+			js: pre[0].toUpperCase() + pre.substr(1)
+		};
+	})();
+
+	s["prefix"] = prefix;
+	classes.push(prefix.lowercase);
+
+	/**
+	 *    Note on detecting some CSS features:
+	 *
+	 *    After reading this (https://github.com/zamiang/detect-css3-3d-transform)
+	 *    I realized detecting css3d transforms is unreliable. But also - we don't really need it
+	 *    because typically the only browser we need to support that doesn't do css 3d transforms
+	 *    is IE9 and IE8 so why not do some good old browser sniffing. Then, I found the snippet below.
+	 *
+	 *    (as a reminder: IE9 - only 2d transforms, no transrion, no animarions, IE8 - not even 2d)
+	 */
+
+	var ie = (function () {
+		var v = 3, div = document.createElement('div'), all = div.getElementsByTagName('i');
+		while (
+				div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
+						all[0]
+				);
+		return v > 4 ? v : null;
+	})();
+
+
+	s["ie"] = ie ? ie : false;
+	classes.push((ie) ? "ie-" + ie : "no-ie");
+
+	// Now add some css features that might be useful
+	check("css3d", function () {
+//		return !ie || ie >= 10;
+		var div = document.createElement("div");
+		div.style[this.prefix + "Transform"] = '';
+		div.style[this.prefix + "Transform"] = 'rotateY(90deg)';
+		return div.style[this.prefix + "Transform"] !== '' && (!ie || ie >= 10);
+	});
+	check("csstransitions", function () {
+		return !ie || ie >= 10;
+	});
+	check("cssanimations", function () {
+		return !ie || ie >= 10;
+	});
+	check("css2d", function () {
+		return !ie || ie >= 9;
+	});
+
+	check("touch", function () {
+		return 'ontouchstart' in document;
+	});
+
+	check("pointer", function () {
+		return (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 1);
+	});
+
+	check("webrct", function () {
+		return ('getUserMedia' in navigator || 'webkitGetUserMedia' in navigator);
+	});
+
+	check("canvas", function () {
+		try {
+			var canvas = document.createElement('canvas');
+			return canvas.getContext('2d');
+		} catch (e) {
+			return false;
+		}
+	});
+
+	check("ios", function() {
+		if (/iP(hone|od|ad)/.test(navigator.platform)) {
+			var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+			return "" + parseInt(v[1], 10)+ parseInt(v[2], 10) + parseInt(v[3] || 0, 10);
+		}else return false;
+	});
+
+	check("history", function () {
+		return !!(window.history && history.pushState);
+	});
+
+	// has to be a function because document.body isn't guaranteed to exist at init-time.
+	// this is needed for ext.scroll
+	s.boxModel = function () {
+		var div = document.createElement("div");
+		div.style.width = div.style.paddingLeft = "1px";
+		document.body.appendChild(div);
+		var supported = div.offsetWidth === 2;
+		document.body.removeChild(div).style.display = 'none';
+		s.boxModel = function () {
+			return supported
+		};
+		return supported;
+	};
+
+	document.documentElement.setAttribute("class", classes.join(" "));
+
+	return Simplizr;
+
+});
+
+define('Transform',['require','Simplizr'],function (require) {
+
+	var Simplizr = require('Simplizr');
+
+	var Transform = function (ext, element) {
+
+		ext.rect = function () {
+			return element.getBoundingClientRect();
+		};
+
+		ext.width = function (v) {
+			if (v) element.style.width = v + "px";
+			return ext.rect().width;
+		};
+
+		ext.height = function (v) {
+			if (v) element.style.height = v + "px";
+			return ext.rect().height;
+		};
+
+		// faster (+cross-browser) method of getting scroll position.
+		// ext.scroll.top() is 32% faster than ext.rect().top
+		// alternatively, we could just use ext.rect().top
+		ext.scroll = {
+			top: function () {
+				return getScroll("Top");
+			},
+			left: function () {
+				return getScroll("Left");
+			}
+		};
+
+		function getScroll(method) {
+			method = 'scroll' + method;
+			var rtn = (element == window || element == document) ? (
+					self[(method == 'scrollTop') ? 'pageYOffset' : 'pageXOffset'] ||
+							(Simplizr.boxModel() && document.documentElement[method]) ||
+							document.body[method]
+					) : element[method];
+			return rtn;
+		}
+
+		ext.x = 0;
+		ext.y = 0;
+		ext.z = 0;
+		ext.rotX = 0;
+		ext.rotY = 0;
+		ext.rotZ = 0;
+		ext.scaleX = 1;
+		ext.scaleY = 1;
+		ext.scaleZ = 1;
+
+		ext.transformToString = function (values, force2d) {
+			values = values || ext;
+
+			var t = "";
+
+			if (values.x !== undefined) t += "translateX(" + values.x + "px)";
+			if (values.y !== undefined) t += "translateY(" + values.y + "px)";
+			if ((values.z !== undefined) && Simplizr.css3d && !force2d) t += "translateZ(" + values.z + "px)";
+
+			if (values.rotX && Simplizr.css3d && !force2d) t += "rotateX(" + values.rotX + "deg)";
+			if (values.rotY && Simplizr.css3d && !force2d) t += "rotateY(" + values.rotY + "deg)";
+			if (values.rotZ && Simplizr.css3d && !force2d) t += "rotateZ(" + values.rotZ + "deg)";
+			else if (values.rotZ) t += "rotate(" + values.rotZ + "deg)";
+
+			if (values.scaleX != 1) t += "scaleX(" + values.scaleX + ")";
+			if (values.scaleY != 1) t += "scaleY(" + values.scaleY + ")";
+			if (values.scaleZ != 1 && Simplizr.css3d && !force2d) t += "scaleZ(" + values.scaleZ + ")";
+
+			return t;
+		};
+
+		ext.transform = function (values, force2d) {
+			if (values) {
+				for (var i in values) {
+					ext[i] = values[i];
+				}
+			}
+
+			var t = ext.transformToString(ext, force2d);
+			//needs to be ms or -ms- for IE, but Simplrz.prefix.js returns Ms
+			var prefix = (Simplizr.prefix.js == "Ms") ? Simplizr.prefix.lowercase : Simplizr.prefix.js;
+			element.style[prefix + "Transform"] = t;
+			// element.style["transform"] = t;
+		};
+
+		var anim;
+
+		// Used to set frame based animation, created with ../Animation.js
+		ext.setAnimation = function (anm, delay) {
+			if (anim) anim.cancel();
+
+			anim = anm.applyTo(ext).onUpdate(function (v) {
+				ext.transform();
+			}).onEnd(function () {
+						anim = null;
+					}).start(delay);
+
+			return anim;
+		}
+	};
+
+	return Transform;
+
+});
+
+
+
+
+
+
+define('DOMEvents',['require'],function (require) {
+
+	var DOMEvents = function (element) {
+
+		element.on = function (event, callback) {
+			element.addEventListener(event, callback);
+			return callback;
+		};
+
+		element.once = function (event, callback) {
+			element.on(event, function (data) {
+				element.off(event, callback);
+				callback(data);
+			});
+		};
+
+		element.off = function (event, callback) {
+			element.removeEventListener(event, callback);
+		};
+
+		element.trigger = function (eventName) {
+
+			var event; // The custom event that will be created
+
+			if (document.createEvent) {
+				event = document.createEvent("HTMLEvents");
+				event.initEvent(eventName, true, true);
+			} else {
+				event = document.createEventObject();
+				event.eventType = eventName;
+			}
+
+			event.eventName = eventName;
+
+			if (document.createEvent) {
+				element.dispatchEvent(event);
+			} else {
+				element.fireEvent("on" + event.eventType, event);
+			}
+		}
+
+	};
+
+	return DOMEvents;
+
+});
+define('Events',['require','DOMEvents'],function (require) {
+
+	var DOMEvents = require('DOMEvents');
 	var Events = function (obj) {
 
+		if(obj instanceof Element)return new DOMEvents(obj);
 		var events = obj || {};
 		var listeners = {};
 
@@ -475,52 +768,6 @@ define('Events',['require'],function (require) {
 	};
 
 	return Events;
-
-});
-define('DOMEvents',['require'],function (require) {
-
-	var DOMEvents = function (element) {
-
-		element.on = function (event, callback) {
-			element.addEventListener(event, callback);
-			return callback;
-		};
-
-		element.once = function (event, callback) {
-			element.on(event, function (data) {
-				element.off(event, callback);
-				callback(data);
-			});
-		};
-
-		element.off = function (event, callback) {
-			element.removeEventListener(event, callback);
-		};
-
-		element.trigger = function (eventName) {
-
-			var event; // The custom event that will be created
-
-			if (document.createEvent) {
-				event = document.createEvent("HTMLEvents");
-				event.initEvent(eventName, true, true);
-			} else {
-				event = document.createEventObject();
-				event.eventType = eventName;
-			}
-
-			event.eventName = eventName;
-
-			if (document.createEvent) {
-				element.dispatchEvent(event);
-			} else {
-				element.fireEvent("on" + event.eventType, event);
-			}
-		}
-
-	};
-
-	return DOMEvents;
 
 });
 define('ReqAnimFrame',['require'],function (require) {
@@ -583,7 +830,9 @@ define('FrameImpulse',['require','ReqAnimFrame','Events'],function (require) {
 	return FrameImpulse;
 
 });
-define('ox',['require','Events','DOMEvents','FrameImpulse'],function (require) {
+define('ox',['require','Transform','Events','FrameImpulse'],function (require) {
+
+	var Transform = require('Transform');
 
 	/**
 
@@ -605,11 +854,14 @@ define('ox',['require','Events','DOMEvents','FrameImpulse'],function (require) {
 		this.element = element;
 		this.element.ox = this;
 
-		new ox.DOMEvents(this.element);
+		new Transform(this, this.element);
+		new ox.Events(this.element);
+
 		this.on = element.on;
 		this.once = element.once;
 		this.off = element.off;
 		this.trigger = element.trigger;
+		element.transform = this.transform;
 
 		// convenience accessors
 		this.style = this.element.style;
@@ -693,9 +945,7 @@ define('ox',['require','Events','DOMEvents','FrameImpulse'],function (require) {
 	};
 
 	ox.Events = require("Events");
-	ox.DOMEvents = require("DOMEvents");
 	ox.FrameImpulse = require("FrameImpulse");
-
 
 	return ox;
 

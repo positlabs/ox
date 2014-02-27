@@ -1,7 +1,9 @@
 define(function (require) {
 
+	var DOMEvents = require('DOMEvents');
 	var Events = function (obj) {
 
+		if(obj instanceof Element)return new DOMEvents(obj);
 		var events = obj || {};
 		var listeners = {};
 
