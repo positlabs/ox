@@ -55,9 +55,9 @@ define(function (require) {
 		},
 		attr: function (name, value) {
 			if (value == undefined){
-				return this.getAttribute(name);	
+				return this.element.getAttribute(name);	
 			}else{
-				this.setAttribute(name, value);
+				this.element.setAttribute(name, value);
 			}
 		},
 		prepend: function (element) {
