@@ -886,8 +886,11 @@ define('ox',['require','Transform','Events','FrameImpulse'],function (require) {
 			}
 		},
 		attr: function (name, value) {
-			this.setAttribute(name, value);
-			if (value == undefined) return this.getAttribute(name);
+			if (value == undefined){
+				return this.getAttribute(name);	
+			}else{
+				this.setAttribute(name, value);
+			}
 		},
 		prepend: function (element) {
 			this.element.insertBefore(element, this.element.childNodes[0]);
