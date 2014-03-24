@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+
+	<script type="text/javascript" src="../ox.js"></script>
+	<script type="text/javascript">
+
+
+		window.onload = function () {
+
+			var model = new ox.Model();
+			model.on('change:asdf', function(val){
+				console.log("val",val);
+			});
+			model.on('change', function(event){
+				console.log(event);
+			});
+
+			model.set("asdf", "fassdf");
+
+			model = new ox.Model({a:1, b:3, c:4});
+			console.log("model",model.attributes);
+			model.on('change:a', function(val){
+				console.log('change:a', val);
+			});
+
+			model.set('a', 'asdfsffsdfsd')
+
+
+		};
+
+
+	</script>
+
+
+</head>
+<body>
+
+</body>
+</html>

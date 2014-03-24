@@ -770,6 +770,47 @@ define('Events',['require','DOMEvents'],function (require) {
 	return Events;
 
 });
+define('Model',['require','Events'],function (require) {
+
+	var Events = require('Events');
+
+	function Model(attributes) {
+		new Events(this);
+		if (attributes) {
+			this.attributes = extend({}, attributes);
+		} else {
+			this.attributes = {};
+		}
+	}
+
+	Model.prototype.set = function (attr, val) {
+		this.attributes[attr] = val;
+		this.trigger('change', {attr: attr, value: val});
+		this.trigger('change:' + attr, val);
+	};
+
+	Model.prototype.get = function (attr) {
+		return this.attributes[attr];
+	};
+
+	function extend(dest, source) {
+		for (var k in source) {
+			if (source.hasOwnProperty(k)) {
+				var value = source[k];
+				if (dest.hasOwnProperty(k) && typeof dest[k] === "object" && typeof value === "object") {
+					extend(dest[k], value);
+				} else {
+					dest[k] = value;
+				}
+			}
+		}
+		return dest;
+	}
+
+	return Model;
+
+});
+
 define('ReqAnimFrame',['require'],function (require) {
 	
 
@@ -830,7 +871,7 @@ define('FrameImpulse',['require','ReqAnimFrame','Events'],function (require) {
 	return FrameImpulse;
 
 });
-define('ox',['require','Transform','Events','FrameImpulse'],function (require) {
+define('ox',['require','Transform','Model','Events','FrameImpulse'],function (require) {
 
 	var Transform = require('Transform');
 
@@ -947,6 +988,7 @@ define('ox',['require','Transform','Events','FrameImpulse'],function (require) {
 		return img;
 	};
 
+	ox.Model = require('Model');
 	ox.Events = require("Events");
 	ox.FrameImpulse = require("FrameImpulse");
 

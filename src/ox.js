@@ -115,6 +115,7 @@ define(function (require) {
 		return img;
 	};
 
+	ox.Model = require('Model');
 	ox.Events = require("Events");
 	ox.FrameImpulse = require("FrameImpulse");
 
