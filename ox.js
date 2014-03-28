@@ -992,6 +992,16 @@ define('ox',['require','Transform','Model','Events','FrameImpulse'],function (re
 		return img;
 	};
 
+	ox.wait =	function(evaluate, func, time) {
+		var time = time || 1000;
+		var interval = setInterval(function () {
+			if (evaluate()) {
+				clearInterval(interval);
+				func();
+			}
+		}, time);
+	};
+
 	ox.Model = require('Model');
 	ox.Events = require("Events");
 	ox.FrameImpulse = require("FrameImpulse");
