@@ -774,6 +774,8 @@ define('Model',['require','Events'],function (require) {
 
 	var Events = require('Events');
 
+	//TODO: make this into a behavior, not a class.
+
 	function Model(attributes) {
 		new Events(this);
 		if (attributes) {
@@ -884,7 +886,7 @@ define('ox',['require','Transform','Model','Events','FrameImpulse'],function (re
 	function ox(selector) {
 		var element = document.querySelector(selector);
 		if(element == null){
-			throw new Error('query found no node: ' + selector);
+			console.warn('query found no node: ' + selector);
 			return;
 		}
 		oxWrap(element);

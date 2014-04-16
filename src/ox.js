@@ -11,7 +11,7 @@ define(function (require) {
 	function ox(selector) {
 		var element = document.querySelector(selector);
 		if(element == null){
-			throw new Error('query found no node: ' + selector);
+			console.warn('query found no node: ' + selector);
 			return;
 		}
 		oxWrap(element);

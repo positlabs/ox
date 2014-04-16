@@ -2,6 +2,8 @@ define(function (require) {
 
 	var Events = require('Events');
 
+	//TODO: make this into a behavior, not a class.
+
 	function Model(attributes) {
 		new Events(this);
 		if (attributes) {
